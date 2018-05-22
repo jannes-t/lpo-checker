@@ -1,12 +1,16 @@
 import trs.*;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public class Parser {
+public class TRSParser {
 
+    public static final TRSParser INSTANCE = new TRSParser();
     private static final char BEG_ARGS = '(';
     private static final char END_ARGS = ')';
     private static final char DEL = '-';
@@ -14,11 +18,21 @@ public class Parser {
 
     private Scanner sc;
 
-    public Parser() {
-
+    private TRSParser() {
     }
 
-    public Rule parseRule(String rule) throws InvalidTRSException {
+    List<Rule> constructTRS(String filepath) throws FileNotFoundException, InvalidTRSException {
+        Scanner input = new Scanner(new FileInputStream(filepath));
+        ArrayList<Rule> rules = new ArrayList<>(10);
+        while (input.hasNext()) {
+            String line = input.nextLine();
+            Rule rule = parseRule(line);
+            rules.add(rule);
+        }
+        return rules;
+    }
+
+    Rule parseRule(String rule) throws InvalidTRSException {
         sc = new Scanner(rule);
         CharacterReader r = new CharacterReader(sc);
         return rule(r);
@@ -85,7 +99,7 @@ public class Parser {
         return new NonVariable(name.toString(), arguments.size(), arguments);
     }
 
-    private class CharacterReader {
+    private static class CharacterReader {
 
         Scanner in;
 

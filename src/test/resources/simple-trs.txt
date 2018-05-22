@@ -1,0 +1,4 @@
+A(Z(),x)-x
+A(S(x),y)-A(x,S(y))
+M(x,Z())-Z()
+M(x,S(y))-A(x,M(x,y))

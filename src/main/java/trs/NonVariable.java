@@ -1,21 +1,23 @@
 package trs;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class NonVariable extends Term{
 
     private int arity;
     private String symbol;
-    private ArrayList<Term> arguments;
+    private List<Term> arguments;
 
-    public NonVariable(String symbol, int arity, ArrayList<Term> arguments) {
+    public NonVariable(String symbol, int arity, List<Term> arguments) {
         this.symbol = symbol;
         this.arity = arity;
         if (arity > 0) {
             this.arguments = arguments;
         }
         else {
-            this.arguments = null;
+            this.arguments = new ArrayList<>();
         }
     }
 
@@ -27,7 +29,7 @@ public class NonVariable extends Term{
         return symbol;
     }
 
-    public ArrayList<Term> getArguments() {
+    public List<Term> getArguments() {
         return arguments;
     }
 

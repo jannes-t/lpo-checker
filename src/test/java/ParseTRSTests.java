@@ -9,17 +9,28 @@ public class ParseTRSTests {
 
     @Test
     void simpleParseRuleTest() {
-        Parser p = new Parser();
+        TRSParser p = TRSParser.INSTANCE;
         Rule result = null;
         try {
             result = p.parseRule("A(x)-x");
         } catch (InvalidTRSException e) {
-
+            fail("Valid syntax threw invalid syntax exception");
         }
-        Term x = new Variable("x");
-        ArrayList<Term> leftArgs = new ArrayList<>();
-        leftArgs.add(x);
-        Rule expected = new Rule(new NonVariable("A", 1, leftArgs), x);
+        Rule expected = TRSGenerator.getSimpleRule1();
+
+        assertEquals(expected.toString(), result.toString());
+    }
+
+    @Test
+    void simpleParseRuleTest2() {
+        TRSParser p = TRSParser.INSTANCE;
+        Rule result = null;
+        try {
+            result = p.parseRule("A(x,S(y))-A(S(x),y)");
+        } catch (InvalidTRSException e) {
+            fail("Valid syntax threw invalid syntax exception");
+        }
+        Rule expected = TRSGenerator.getSimpleRule2();
 
         assertEquals(expected.toString(), result.toString());
     }

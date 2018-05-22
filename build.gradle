@@ -8,6 +8,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    flatDir {
+        dirs 'lib'
+    }
 }
 
 test {
@@ -18,4 +21,12 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.5'
+    compile ('net.sf.tweety.logics:pl:1.10') {
+        // transitive dependency, which can't be resolved automatically (/jspf/core/1.0.2):
+        exclude group: 'jspf', module: 'core'
+    }
+    // transitive dependency, which can't be resolved automatically:
+    compile group: 'org.ojalgo', name: 'ojalgo', version: '35.0.1'
+    // not sure if needed
+    compile files('lib/core-1.0.2.jar')
 }
