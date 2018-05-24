@@ -29,8 +29,7 @@ public class Main {
 
         // encode the TRS
         PLEncoder encoder = PLEncoder.INSTANCE;
-        Set<String> symbols = encoder.getFunctionSymbols(rules);
-        PropositionalFormula encoding = encoder.getEncoding(rules, symbols);
+        PropositionalFormula encoding = encoder.getEncoding(rules);
 
 //        ISolver solver = SolverFactory.newDefault();
     }

@@ -20,6 +20,6 @@ public class Rule {
 
     @Override
     public String toString() {
-        return String.format("%s->%s", left.toString(), right.toString());
+        return String.format("%s-%s", left.toString(), right.toString());
     }
 }

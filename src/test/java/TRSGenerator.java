@@ -1,9 +1,11 @@
-import trs.NonVariable;
-import trs.Rule;
-import trs.Term;
-import trs.Variable;
+import net.sf.tweety.logics.pl.syntax.PropositionalFormula;
+import trs.*;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TRSGenerator {
 
@@ -36,5 +38,20 @@ public class TRSGenerator {
         Term leftA = new NonVariable("A", 2, leftAArgs);
 
         return new Rule(leftA, rightA);
+    }
+
+    static List<Rule> getDedekind() {
+        TRSParser p = TRSParser.INSTANCE;
+        List<Rule> rules = null;
+        try {
+            rules = p.constructTRS("src/test/resources/mDedekind.txt");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not find file");
+            System.exit(1);
+        } catch (InvalidTRSException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return rules;
     }
 }
