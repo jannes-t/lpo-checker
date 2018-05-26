@@ -1,13 +1,11 @@
-import net.sf.tweety.logics.pl.syntax.PropositionalFormula;
 import trs.*;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.fail;
 
-public class TRSGenerator {
+class TRSBuilder {
 
     // A(x)-x
     static Rule getSimpleRule1() {
@@ -45,6 +43,36 @@ public class TRSGenerator {
         List<Rule> rules = null;
         try {
             rules = p.constructTRS("src/test/resources/mDedekind.txt");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not find file");
+            System.exit(1);
+        } catch (InvalidTRSException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return rules;
+    }
+
+    static List<Rule> getAckermann() {
+        TRSParser p = TRSParser.INSTANCE;
+        List<Rule> rules = null;
+        try {
+            rules = p.constructTRS("src/test/resources/Ackermann.txt");
+        } catch (FileNotFoundException e) {
+            System.out.println("Could not find file");
+            System.exit(1);
+        } catch (InvalidTRSException e) {
+            System.out.println(e.getMessage());
+            System.exit(1);
+        }
+        return rules;
+    }
+
+    static List<Rule> getDersh5a() {
+        TRSParser p = TRSParser.INSTANCE;
+        List<Rule> rules = null;
+        try {
+            rules = p.constructTRS("src/test/resources/dershowitz-rpo_paper-example5a.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);

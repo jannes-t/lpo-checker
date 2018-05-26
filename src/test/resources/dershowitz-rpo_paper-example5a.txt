@@ -1,0 +1,5 @@
+N(N(a))-a
+N(O(a,b))-A(N(a),N(b))
+N(A(a,b))-O(N(a),N(b))
+A(a,O(b,y))-O(A(a,b),A(a,y))
+A(O(b,y),a)-O(A(b,a),A(y,a))

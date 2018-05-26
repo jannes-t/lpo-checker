@@ -2,7 +2,6 @@ import org.junit.jupiter.api.Test;
 import trs.*;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +17,7 @@ public class ParseTRSTests {
         } catch (InvalidTRSException e) {
             fail("Valid syntax threw invalid syntax exception");
         }
-        Rule expected = TRSGenerator.getSimpleRule1();
+        Rule expected = TRSBuilder.getSimpleRule1();
 
         assertEquals(expected.toString(), result.toString());
     }
@@ -32,7 +31,7 @@ public class ParseTRSTests {
         } catch (InvalidTRSException e) {
             fail("Valid syntax threw invalid syntax exception");
         }
-        Rule expected = TRSGenerator.getSimpleRule2();
+        Rule expected = TRSBuilder.getSimpleRule2();
 
         assertEquals(expected.toString(), result.toString());
     }

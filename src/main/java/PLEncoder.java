@@ -5,6 +5,7 @@ import trs.Term;
 import trs.Variable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PLEncoder {
 
@@ -12,46 +13,82 @@ public class PLEncoder {
 
     private PLEncoder() {}
 
-    PropositionalFormula getEncoding(List<Rule> rules) {
+    /**
+     * Returns a full encoding of the given TRS, which still contains Tautologies and Contradictions as literals
+     * @param rules a list of rewrite rules which constitute a TRS
+     * @return      a full encoding of the formula f (which is true iff the given TRS is lpo-terminating)
+     *              in conjunctive normal form
+     */
+    Conjunction getEncoding(List<Rule> rules) {
         Set<String> symbols = getFunctionSymbols(rules);
         Map<String, Proposition> propositionMap = generatePropositions(symbols);
         PropositionalFormula f1 = f1(symbols, propositionMap);
-        return f1;
+        PropositionalFormula f2 = f2(rules, propositionMap);
+        PropositionalFormula f = new Conjunction(f1, f2);
+        return f.trim().toCnf();
     }
 
+    /**
+     * Returns the f1 encoding for a set of symbols which denote all the functions contained in a TRS
+     * @param functionSymbols set of function symbols
+     * @param map             a map of P variables which return P_a,b for a given a,b (function symbols)
+     * @return                f1 encoding (sufficient conditions for P being a precedence over Sigma)
+     */
     PropositionalFormula f1(Set<String> functionSymbols, Map<String, Proposition> map) {
-        // part A (part B is included due to the method of encoding)
-        PropositionalFormula partAB = new Conjunction();
+        // part A
+        List<PropositionalFormula> conjunctsA = new ArrayList<>();
         for (String a: functionSymbols) {
             for (String b: functionSymbols) {
+                if (a.equals(b))
+                    continue;
                 Proposition p_ab = map.get(generateKeyPVar(a, b));
                 Proposition p_ba = map.get(generateKeyPVar(b, a));
-                Negation n = new Negation(new Conjunction(p_ab, p_ba));
-                partAB = partAB.combineWithAnd(n);
+                // Pab -> not Pba == not Pab or not Pba
+                Disjunction impl1 = new Disjunction(new Negation(p_ab), new Negation(p_ba));
+                // not Pba -> Pab == Pba or Pab
+                Disjunction impl2 = new Disjunction(p_ba, p_ab);
+                Conjunction biImpl = new Conjunction(impl1, impl2);
+                conjunctsA.add(biImpl);
             }
         }
+        PropositionalFormula partA = new Conjunction(conjunctsA);
+
+        // part B
+        List<PropositionalFormula> conjunctsB = new ArrayList<>();
+        for (String a: functionSymbols) {
+            conjunctsB.add(new Negation(map.get(generateKeyPVar(a, a))));
+        }
+        PropositionalFormula partB = new Conjunction(conjunctsB);
+
         // part C
-        PropositionalFormula partC = new Conjunction();
+        List<PropositionalFormula> conjunctsC = new ArrayList<>();
         for (String a: functionSymbols) {
             for (String b: functionSymbols) {
                 for (String c: functionSymbols) {
+                    if (a.equals(b) || a.equals(c) || b.equals(c))
+                        continue;
                     Proposition p_ab = map.get(generateKeyPVar(a, b));
                     Proposition p_bc = map.get(generateKeyPVar(b, c));
                     Proposition p_ac = map.get(generateKeyPVar(a, c));
                     Conjunction ab_and_bc = new Conjunction(p_ab, p_bc);
                     // use 'a -> b == not a or b' to construct implication
                     Disjunction d = new Disjunction(new Negation(ab_and_bc), p_ac);
-                    partC = partC.combineWithAnd(d);
+                    conjunctsC.add(d);
                 }
             }
         }
-        PropositionalFormula f1 = new Conjunction(partAB, partC);
-        f1 = f1.trim();
-        f1 = f1.toCnf();
-        return f1;
+        PropositionalFormula partC = new Conjunction(conjunctsC);
+        PropositionalFormula f1 = new Conjunction(Arrays.asList(partA, partB, partC));
+        return f1.trim();
     }
 
-    Conjunction f2(List<Rule> rules, Map<String, Proposition> map) {
+    /**
+     *
+     * @param rules The rules constituting a TRS
+     * @param map   a map of P variables which return P_a,b for a given a,b (function symbols)
+     * @return
+     */
+    PropositionalFormula f2(List<Rule> rules, Map<String, Proposition> map) {
         List<PropositionalFormula> conjuncts = new ArrayList<>();
         for (Rule rule: rules) {
             PropositionalFormula r_ts = r_ts(rule.getLeft(), rule.getRight(), map);
@@ -59,9 +96,9 @@ public class PLEncoder {
             conjuncts.add(r_ts);
         }
         PropositionalFormula result = new Conjunction(conjuncts);
-        result = result.trim();
-        return result.toCnf();
+        return result.trim();
     }
+
 
     PropositionalFormula r_ts(Term t, Term s, Map<String, Proposition> map) {
         PropositionalFormula result = new Disjunction();
