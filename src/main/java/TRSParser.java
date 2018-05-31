@@ -10,18 +10,15 @@ import java.util.regex.Pattern;
 
 public class TRSParser {
 
-    public static final TRSParser INSTANCE = new TRSParser();
     private static final char BEG_ARGS = '(';
     private static final char END_ARGS = ')';
-    private static final char DEL = '-';
+    private static final char DEL1 = '-';
+    private static final char DEL2 = '>';
     private static final char ARG_DEL = ',';
 
-    private Scanner sc;
+    private TRSParser() {}
 
-    private TRSParser() {
-    }
-
-    List<Rule> constructTRS(String filepath) throws FileNotFoundException, InvalidTRSException {
+    static List<Rule> constructTRS(String filepath) throws FileNotFoundException, InvalidTRSException {
         Scanner input = new Scanner(new FileInputStream(filepath));
         ArrayList<Rule> rules = new ArrayList<>(10);
         while (input.hasNext()) {
@@ -32,16 +29,22 @@ public class TRSParser {
         return rules;
     }
 
-    Rule parseRule(String rule) throws InvalidTRSException {
-        sc = new Scanner(rule);
+    static Rule parseRule(String rule) throws InvalidTRSException {
+        Scanner sc = new Scanner(rule);
         CharacterReader r = new CharacterReader(sc);
         return rule(r);
     }
 
-    private Rule rule(CharacterReader r) throws InvalidTRSException {
+    private static Rule rule(CharacterReader r) throws InvalidTRSException {
         Term left = term(r);
-        if (r.nextCharIs(DEL))
+        // inelegant check if -> is delimiter
+        if (r.nextCharIs(DEL1)) {
             r.nextChar();
+            if (r.nextCharIs(DEL2))
+                r.nextChar();
+            else
+                throw new InvalidTRSException("wrong delimiter");
+        }
         else
             throw new InvalidTRSException("wrong delimiter");
         Term right = term(r);
@@ -52,7 +55,7 @@ public class TRSParser {
         return new Rule(left, right);
     }
 
-    private Term term(CharacterReader r) throws InvalidTRSException {
+    private static Term term(CharacterReader r) throws InvalidTRSException {
         if (r.nextCharIsLowercase())
             return variable(r);
         else if (r.nextCharIsUppercase())
@@ -61,7 +64,7 @@ public class TRSParser {
             throw new InvalidTRSException("invalid character at beginning of term");
     }
 
-    private Variable variable(CharacterReader r) throws InvalidTRSException {
+    private static Variable variable(CharacterReader r) throws InvalidTRSException {
         StringBuilder name = new StringBuilder(4);
         name.append(r.nextChar());
         while (r.nextCharIsDigit())
@@ -69,7 +72,7 @@ public class TRSParser {
         return new Variable(name.toString());
     }
 
-    private NonVariable nonVariable(CharacterReader r) throws InvalidTRSException {
+    private static NonVariable nonVariable(CharacterReader r) throws InvalidTRSException {
         StringBuilder name = new StringBuilder(4);
         name.append(r.nextChar());
         while (r.nextCharIsDigit())

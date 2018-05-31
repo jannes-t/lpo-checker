@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
     id 'java'
 }
 
@@ -17,9 +18,24 @@ test {
     useJUnitPlatform()
 }
 
+// shadow plugin for creating fat jar
+shadowJar {
+    baseName = 'shadow'
+    classifier = null
+    version = null
+}
+
+// need to declare main entry point
+jar {
+    manifest {
+        attributes 'Main-Class': 'Main'
+    }
+}
+
 dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-api:5.2.0")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.2.0")
+    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
     compile 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.5'
     compile ('net.sf.tweety.logics:pl:1.10') {
         // transitive dependency, which can't be resolved automatically (/jspf/core/1.0.2):

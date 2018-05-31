@@ -16,21 +16,37 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class FSolver {
-    public static final FSolver INSTANCE = new FSolver();
 
     private FSolver() {}
 
     /**
      *
      * @param cnf A formula in cnf
-     * @return    If satisfiable: A set of literals which satisfy the given formula
-     *            If unsatisfiable: null
+     * @return    If satisfiable: true,
+     *                A set of literals which satisfy the given formula / null if trivially true
+     *            If unsatisfiable: false, null
      */
-    Set<PropositionalFormula> getModelOrNull(Conjunction cnf) {
-        Pair<String, List<Proposition>> dimacsMappingPair = convertToDimacs(cnf);
+    static Pair<Boolean, Set<Proposition>> getModelOrNull(Conjunction cnf) throws
+            TimeoutException, ParseFormatException, IOException {
+
+        PropositionalFormula cleanCNF = cleanCNF(cnf);
+        if (cleanCNF instanceof Tautology)
+            return new Pair<>(true, null);
+        else if (cleanCNF instanceof Contradiction)
+            return new Pair<>(false, null);
+
+        // casting is safe because cleanCNF method must return Conjunction in this case
+        Conjunction cnfProcessed = (Conjunction) cleanCNF;
+
+        Pair<String, List<Proposition>> dimacsMappingPair = convertToDimacs(cnfProcessed);
         String dimacsString = dimacsMappingPair.getFirst();
         List<Proposition> propositionsMapping = dimacsMappingPair.getSecond();
-        return getModelFromDimacs(dimacsString, propositionsMapping);
+
+        Optional<Set<Proposition>> optModel = getModelFromDimacs(dimacsString, propositionsMapping);
+        if (optModel.isPresent())
+            return new Pair<>(true, optModel.get());
+        else
+            return new Pair<>(false, null);
     }
 
     /**
@@ -40,7 +56,9 @@ public class FSolver {
      * @return             If satisfiable: A set of literals which satisfy the given formula
      *                     If unsatisfiable: null
      */
-    Set<PropositionalFormula> getModelFromDimacs(String dimacsString, List<Proposition> mapping) {
+    static Optional<Set<Proposition>> getModelFromDimacs(String dimacsString, List<Proposition> mapping) throws
+            TimeoutException, ParseFormatException, IOException {
+
         ISolver solver = SolverFactory.newDefault();
         solver.setTimeout(3600); // 1 hour timeout
         Reader reader = new DimacsReader(solver);
@@ -50,37 +68,34 @@ public class FSolver {
                     new ByteArrayInputStream(dimacsString.getBytes(Charset.defaultCharset())));
             if (problem.isSatisfiable()) {
                 int[] model = problem.model();
-                Set<PropositionalFormula> result = new HashSet<>(model.length);
+                Set<Proposition> result = new HashSet<>(model.length);
                 for (int i: model) {
                     if (i > 0)
                         result.add(mapping.get(i-1));
-                    else
-                        result.add(new Negation(mapping.get(-i-1)));
+//                    else
+//                        result.add(new Negation(mapping.get(-i-1)));
                 }
-                return result;
+                return Optional.of(result);
             } else {
-                return null;
+                return Optional.empty();
             }
-        } catch (ParseFormatException e) {
-            //
-        } catch (IOException e) {
-            //
         } catch (ContradictionException e) {
-            System.out.println("Unsatisfiable (trivial)!");
+            return Optional.empty();
         } catch (TimeoutException e) {
-            System.out.println("Timeout, sorry!");
+            throw new TimeoutException("Timeout occurred");
         }
-        return null;
     }
 
     /**
+     * This function will throw RuntimeExceptions if the given cnf is trivially true/false
+     * @param cnf Formula in cnf which is not trivially false (contains trivially false disjunction)
+     *            and also not trivially true (all disjunctions are Tautologies)
      *
-     * @param conj Formula in cnf
      * @return     Pair of:
      *             -String of SAT-problem in Dimacs Format
      *             -List of propositions, where each propositions index+1 maps to propositions in the dimacs format
      */
-    Pair<String, List<Proposition>> convertToDimacs(Conjunction cnf) {
+    static Pair<String, List<Proposition>> convertToDimacs(Conjunction cnf) {
         List<Proposition> props = new ArrayList<>();
         props.addAll(cnf.getAtoms());
 
@@ -90,6 +105,9 @@ public class FSolver {
                 .map(c -> (Disjunction) c)
                 .filter(d -> !isTriviallyTrueDisjunction(d))
                 .collect(Collectors.toList());
+
+        if (clauses.isEmpty())
+            throw new RuntimeException("This should not happen, trivially true cnf should be resolved earlier");
 
         StringBuilder builder = new StringBuilder();
         String header = "p cnf " + props.size() + " " + clauses.size() + "\n";
@@ -127,10 +145,10 @@ public class FSolver {
      *            If cnf is trivially true returns a Tautology
      *            Else returns a Conjunction in cnf, which neither contains Contradictions nor Tautologies as literals
      */
-    PropositionalFormula cleanCNF(Conjunction cnf) {
+    static PropositionalFormula cleanCNF(Conjunction cnf) {
         boolean isTriviallyContradictory = cnf.stream()
                 .map(d -> (Disjunction) d)
-                .anyMatch(this::isContradictiveDisjunction);
+                .anyMatch(FSolver::isContradictiveDisjunction);
 
         if (isTriviallyContradictory)
             return new Contradiction();
@@ -153,7 +171,7 @@ public class FSolver {
     }
 
 
-    boolean isTriviallyTrueDisjunction(Disjunction disjunction) {
+    static boolean isTriviallyTrueDisjunction(Disjunction disjunction) {
         for (PropositionalFormula disjunct : disjunction) {
             if (disjunct instanceof Tautology)
                 return true;
@@ -161,7 +179,7 @@ public class FSolver {
         return false;
     }
 
-    boolean isContradictiveDisjunction(Disjunction disjunction) {
+    static boolean isContradictiveDisjunction(Disjunction disjunction) {
         for (PropositionalFormula disjunct : disjunction) {
             if (!(disjunct instanceof Contradiction))
                 return false;

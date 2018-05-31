@@ -1,3 +1,4 @@
+import net.sf.tweety.commons.util.Pair;
 import net.sf.tweety.logics.pl.syntax.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -16,20 +17,25 @@ import java.util.*;
 @DisplayName("Encoding to SAT")
 class EncodingTests {
 
-    @BeforeAll
-    static void initAll() {
-
+    @Test
+    void extractSymbolsFromVariableTest() {
+        String[] s = {"A", "S", "Z"};
+        HashSet<String> symbols = new HashSet<>(Arrays.asList(s));
+        Map<String, Proposition> map = PLEncoder.generatePropositions(symbols);
+        String key = PLEncoder.generateKeyPVar("A", "Z");
+        Pair<String, String> symbolPair = PLEncoder.getSymbolsFromPVar(map.get(key));
+        assertEquals("A", symbolPair.getFirst());
+        assertEquals("Z", symbolPair.getSecond());
     }
 
     // testing if map of propositions is generated correctly
     @DisplayName("generating P variables from function symbols")
     @Test
     void encodingFunctionSymbolsTest() {
-        PLEncoder encoder = PLEncoder.INSTANCE;
         String[] s = {"A", "S", "Z"};
         HashSet<String> symbols = new HashSet<>(Arrays.asList(s));
-        Map<String, Proposition> map = encoder.generatePropositions(symbols);
-        String key = encoder.generateKeyPVar("A", "Z");
+        Map<String, Proposition> map = PLEncoder.generatePropositions(symbols);
+        String key = PLEncoder.generateKeyPVar("A", "Z");
         assertEquals("P_A,Z", map.get(key).toString());
     }
 
@@ -38,28 +44,27 @@ class EncodingTests {
     @DisplayName("F1 encoding of two function symbols")
     @Test
     void encodingF1simple1Test() {
-        PLEncoder encoder = PLEncoder.INSTANCE;
         Rule simpleRule2 = TRSBuilder.getSimpleRule2();
         ArrayList<Rule> rules = new ArrayList<>();
         rules.add(simpleRule2);
-        Set<String> symbols = encoder.getFunctionSymbols(rules);
-        Map<String, Proposition> propositionMap = encoder.generatePropositions(symbols);
-        PropositionalFormula f1 = encoder.f1(symbols, propositionMap);
+        Set<String> symbols = PLEncoder.getFunctionSymbols(rules);
+        Map<String, Proposition> propositionMap = PLEncoder.generatePropositions(symbols);
+        PropositionalFormula f1 = PLEncoder.f1(symbols, propositionMap);
 
         PropositionalFormula expectedPartAB =
                 new Negation(
                         new Conjunction(
-                                encoder.generatePropositionPVar("A", "A"),
-                                encoder.generatePropositionPVar("A", "A")
+                                PLEncoder.generatePropositionPVar("A", "A"),
+                                PLEncoder.generatePropositionPVar("A", "A")
                         )
                 );
         PropositionalFormula expectedPartC =
                 new Disjunction(
-                        encoder.generatePropositionPVar("A", "A"),
+                        PLEncoder.generatePropositionPVar("A", "A"),
                         new Negation(
                                 new Conjunction(
-                                        encoder.generatePropositionPVar("A", "A"),
-                                        encoder.generatePropositionPVar("A", "A"))
+                                        PLEncoder.generatePropositionPVar("A", "A"),
+                                        PLEncoder.generatePropositionPVar("A", "A"))
                         )
                 );
         PropositionalFormula expected =
@@ -71,30 +76,26 @@ class EncodingTests {
     // test if method to check if variable is element in term is correct
     @Test
     void varInTermTest() {
-        PLEncoder encoder = PLEncoder.INSTANCE;
         Rule r = TRSBuilder.getSimpleRule2();
         Term t = r.getLeft();
         Variable v = new Variable("y");
-        assertTrue(encoder.isVariableInTerm(t, v));
+        assertTrue(PLEncoder.isVariableInTerm(t, v));
     }
 
     @Test
     void varNotInTermTest() {
-        PLEncoder encoder = PLEncoder.INSTANCE;
         Rule r = TRSBuilder.getSimpleRule2();
         Term t = r.getLeft();
         Variable v = new Variable("z");
-        assertFalse(encoder.isVariableInTerm(t, v));
+        assertFalse(PLEncoder.isVariableInTerm(t, v));
     }
 
     @Disabled
     @Test
     void encodingF2DedekindTest() {
-        TRSParser p = TRSParser.INSTANCE;
-        PLEncoder encoder = PLEncoder.INSTANCE;
         List<Rule> rules = null;
         try {
-            rules = p.constructTRS("src/test/resources/mDedekind.txt");
+            rules = TRSParser.constructTRS("src/test/resources/mDedekind.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);
@@ -104,7 +105,7 @@ class EncodingTests {
             System.exit(1);
             fail("syntax error in correct trs");
         }
-        Set<String> symbols = encoder.getFunctionSymbols(rules);
+        Set<String> symbols = PLEncoder.getFunctionSymbols(rules);
         Set<String> expectedSymbols = new HashSet<>();
         expectedSymbols.add("A");
         expectedSymbols.add("S");
@@ -112,12 +113,12 @@ class EncodingTests {
         expectedSymbols.add("Z");
         assertEquals(expectedSymbols, symbols);
 
-        Map<String, Proposition> map = encoder.generatePropositions(symbols);
+        Map<String, Proposition> map = PLEncoder.generatePropositions(symbols);
 
         Rule rule2 = rules.get(1);
         ArrayList<Rule> onlyRule2 = new ArrayList<>();
         onlyRule2.add(rule2);
-        PropositionalFormula f2 = encoder.f2(onlyRule2, map);
+        PropositionalFormula f2 = PLEncoder.f2(onlyRule2, map);
         assertEquals(new Proposition("x"), f2);
     }
 }

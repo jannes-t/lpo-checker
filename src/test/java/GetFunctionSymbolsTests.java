@@ -10,15 +10,13 @@ public class GetFunctionSymbolsTests {
 
     @Test
     void getSymbolsFromTermTest() {
-        TRSParser parser = TRSParser.INSTANCE;
-        PLEncoder encoder = PLEncoder.INSTANCE;
         Rule r = null;
         try {
-            r = parser.parseRule("A(x,Z())-x");
+            r = TRSParser.parseRule("A(x,Z())->x");
         } catch(InvalidTRSException e) {
             fail("invalid syntax exception for a valid syntax rule");
         }
-        Set<String> result = encoder.getFunctionSymbolsInTerm(r.getLeft());
+        Set<String> result = PLEncoder.getFunctionSymbolsInTerm(r.getLeft());
         Set<String> expected = new HashSet<>();
         expected.add("A");
         expected.add("Z");

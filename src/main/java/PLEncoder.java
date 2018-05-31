@@ -1,3 +1,4 @@
+import net.sf.tweety.commons.util.Pair;
 import net.sf.tweety.logics.pl.syntax.*;
 import trs.NonVariable;
 import trs.Rule;
@@ -9,8 +10,6 @@ import java.util.stream.Collectors;
 
 public class PLEncoder {
 
-    public static final PLEncoder INSTANCE = new PLEncoder();
-
     private PLEncoder() {}
 
     /**
@@ -19,7 +18,7 @@ public class PLEncoder {
      * @return      a full encoding of the formula f (which is true iff the given TRS is lpo-terminating)
      *              in conjunctive normal form
      */
-    Conjunction getEncoding(List<Rule> rules) {
+    static Conjunction getEncoding(List<Rule> rules) {
         Set<String> symbols = getFunctionSymbols(rules);
         Map<String, Proposition> propositionMap = generatePropositions(symbols);
         PropositionalFormula f1 = f1(symbols, propositionMap);
@@ -34,7 +33,7 @@ public class PLEncoder {
      * @param map             a map of P variables which return P_a,b for a given a,b (function symbols)
      * @return                f1 encoding (sufficient conditions for P being a precedence over Sigma)
      */
-    PropositionalFormula f1(Set<String> functionSymbols, Map<String, Proposition> map) {
+    static PropositionalFormula f1(Set<String> functionSymbols, Map<String, Proposition> map) {
         // part A
         List<PropositionalFormula> conjunctsA = new ArrayList<>();
         for (String a: functionSymbols) {
@@ -88,7 +87,7 @@ public class PLEncoder {
      * @param map   a map of P variables which return P_a,b for a given a,b (function symbols)
      * @return
      */
-    PropositionalFormula f2(List<Rule> rules, Map<String, Proposition> map) {
+    static PropositionalFormula f2(List<Rule> rules, Map<String, Proposition> map) {
         List<PropositionalFormula> conjuncts = new ArrayList<>();
         for (Rule rule: rules) {
             PropositionalFormula r_ts = r_ts(rule.getLeft(), rule.getRight(), map);
@@ -100,7 +99,7 @@ public class PLEncoder {
     }
 
 
-    PropositionalFormula r_ts(Term t, Term s, Map<String, Proposition> map) {
+    static PropositionalFormula r_ts(Term t, Term s, Map<String, Proposition> map) {
         PropositionalFormula result = new Disjunction();
         // if t in r = t -> s is a variable TRS is non-terminating / rule is illegal
         if (t.isVariable())
@@ -164,7 +163,7 @@ public class PLEncoder {
         return result;
     }
 
-    PropositionalFormula andR_ts_j(NonVariable t, NonVariable s, Map<String, Proposition> map) {
+    static PropositionalFormula andR_ts_j(NonVariable t, NonVariable s, Map<String, Proposition> map) {
         PropositionalFormula result = new Conjunction();
         for (Term arg: s.getArguments()) {
             result = result.combineWithAnd(r_ts(t, arg, map));
@@ -172,7 +171,7 @@ public class PLEncoder {
         return result;
     }
 
-    boolean isVariableInTerm(Term term, Variable variable) {
+    static boolean isVariableInTerm(Term term, Variable variable) {
         if (term.isVariable()) {
             Variable termVariable = (Variable) term;
             return variable.equals(termVariable);
@@ -186,7 +185,7 @@ public class PLEncoder {
     }
 
 
-    Set<String> getFunctionSymbols(List<Rule> rules) {
+    static Set<String> getFunctionSymbols(List<Rule> rules) {
         Set<String> symbols = new HashSet<>();
         for (Rule r: rules) {
             Term left = r.getLeft();
@@ -198,7 +197,7 @@ public class PLEncoder {
     }
 
 
-    Set<String> getFunctionSymbolsInTerm(Term t) {
+    static Set<String> getFunctionSymbolsInTerm(Term t) {
         Set<String> symbols = new HashSet<>();
         if (t.isVariable())
             return symbols;
@@ -213,7 +212,7 @@ public class PLEncoder {
     }
 
 
-    Map<String, Proposition> generatePropositions(Set<String> functionSymbols) {
+    static Map<String, Proposition> generatePropositions(Set<String> functionSymbols) {
         HashMap<String, Proposition> propositionHashMap = new HashMap<>(20);
         for (String s1: functionSymbols) {
             for (String s2: functionSymbols) {
@@ -225,13 +224,18 @@ public class PLEncoder {
         return propositionHashMap;
     }
 
-    String generateKeyPVar(String functionSymbolLeft, String functionSymbolRight) {
+    static String generateKeyPVar(String functionSymbolLeft, String functionSymbolRight) {
         return String.format("%s-%s", functionSymbolLeft, functionSymbolRight);
     }
 
-    Proposition generatePropositionPVar(String functionSymbolLeft, String functionSymbolRight) {
+    static Proposition generatePropositionPVar(String functionSymbolLeft, String functionSymbolRight) {
         String propositionalVariableName =
                 String.format("P_%s,%s", functionSymbolLeft, functionSymbolRight);
         return new Proposition(propositionalVariableName);
+    }
+
+    static Pair<String, String> getSymbolsFromPVar(Proposition p) {
+        String[] symbols = p.getName().split("_")[1].split(",");
+        return new Pair<>(symbols[0], symbols[1]);
     }
 }

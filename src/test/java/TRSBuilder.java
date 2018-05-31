@@ -39,10 +39,9 @@ class TRSBuilder {
     }
 
     static List<Rule> getDedekind() {
-        TRSParser p = TRSParser.INSTANCE;
         List<Rule> rules = null;
         try {
-            rules = p.constructTRS("src/test/resources/mDedekind.txt");
+            rules = TRSParser.constructTRS("src/test/resources/mDedekind.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);
@@ -54,10 +53,9 @@ class TRSBuilder {
     }
 
     static List<Rule> getAckermann() {
-        TRSParser p = TRSParser.INSTANCE;
         List<Rule> rules = null;
         try {
-            rules = p.constructTRS("src/test/resources/Ackermann.txt");
+            rules = TRSParser.constructTRS("src/test/resources/Ackermann.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);
@@ -69,10 +67,9 @@ class TRSBuilder {
     }
 
     static List<Rule> getDersh5a() {
-        TRSParser p = TRSParser.INSTANCE;
         List<Rule> rules = null;
         try {
-            rules = p.constructTRS("src/test/resources/dershowitz-rpo_paper-example5a.txt");
+            rules = TRSParser.constructTRS("src/test/resources/dershowitz-rpo_paper-example5a.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);

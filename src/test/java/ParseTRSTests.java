@@ -10,10 +10,9 @@ public class ParseTRSTests {
 
     @Test
     void simpleParseRuleTest() {
-        TRSParser p = TRSParser.INSTANCE;
         Rule result = null;
         try {
-            result = p.parseRule("A(x)-x");
+            result = TRSParser.parseRule("A(x)->x");
         } catch (InvalidTRSException e) {
             fail("Valid syntax threw invalid syntax exception");
         }
@@ -24,10 +23,9 @@ public class ParseTRSTests {
 
     @Test
     void simpleParseRuleTest2() {
-        TRSParser p = TRSParser.INSTANCE;
         Rule result = null;
         try {
-            result = p.parseRule("A(x,S(y))-A(S(x),y)");
+            result = TRSParser.parseRule("A(x,S(y))->A(S(x),y)");
         } catch (InvalidTRSException e) {
             fail("Valid syntax threw invalid syntax exception");
         }
@@ -38,10 +36,9 @@ public class ParseTRSTests {
 
     @Test
     void parseDedekindTest() {
-        TRSParser p = TRSParser.INSTANCE;
         List<Rule> rules = null;
         try {
-            rules = p.constructTRS("src/test/resources/mDedekind.txt");
+            rules = TRSParser.constructTRS("src/test/resources/mDedekind.txt");
         } catch (FileNotFoundException e) {
             System.out.println("Could not find file");
             System.exit(1);
