@@ -2,19 +2,15 @@ import net.sf.tweety.commons.util.Pair;
 import net.sf.tweety.logics.pl.syntax.Proposition;
 import net.sf.tweety.logics.pl.syntax.PropositionalFormula;
 import org.apache.commons.cli.*;
-import org.sat4j.minisat.SolverFactory;
 import org.sat4j.reader.ParseFormatException;
-import org.sat4j.specs.ISolver;
 import org.sat4j.specs.TimeoutException;
 import trs.InvalidTRSException;
-import trs.NonVariable;
 import trs.Rule;
-import trs.Term;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 public class Main {
 
@@ -68,31 +64,42 @@ public class Main {
 
     public static void main(String[] args) {
         // add command line options
-        Option timout = Option.builder()
+        Option timeout = Option.builder("t")
                 .argName("minutes")
                 .hasArg()
                 .desc("timeout after specified interval")
                 .longOpt("timeout")
                 .build();
-
+        Option help = Option.builder("h")
+                .desc("print help message")
+                .longOpt("help")
+                .build();
         Option precedence = new Option("p", "print one possible precedence if lpo-terminating");
-        Options options = new Options();
-        options.addOption(timout);
-        options.addOption(precedence);
 
+        Options options = new Options();
+        options.addOption(timeout);
+        options.addOption(precedence);
+        options.addOption(help);
+
+        HelpFormatter helpFormatter = new HelpFormatter();
         CommandLineParser parser = new DefaultParser();
         CommandLine line = null;
+        // check if given options are valid
         try {
             line = parser.parse(options, args);
         } catch (ParseException e) {
             System.err.println("Parsing of options failed.  Reason: " + e.getMessage());
+            helpFormatter.printHelp("lpochecker [Options] ... TRS-filepath", options);
             System.exit(1);
         }
 
+        // check if filepath is given
         if (line.getArgs().length != 1) {
             System.out.println("Please specify input file as argument");
+            helpFormatter.printHelp("lpochecker [Options] ... TRS-filepath", options);
             System.exit(1);
         }
+
         new Main().start(line);
     }
 
