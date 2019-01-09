@@ -1,5 +1,5 @@
 # lpo-sat-solver
-Implemenation of a lpo-checker which determines if a given TRS is lpo-terminating
+This is the code for my bachelor thesis project about mechanically showing LPO (lexicographic path order) termination of a TRS (term rewriting system), which in turn proves termination. The thesis report pdf is in the top level of the repo.
 
 This is a command-line tool which will check lpo-termination for a given Term Rewriting System.
 If the given TRS is lpo-terminating a possible precedence that can be lifted to lpo is given.
